@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Academic Reveal.js Tools</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown-light.min.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --page-bg: #f6f8fa;
+      --page-fg: #24292f;
+      --border: #d0d7de;
+    }
+
+    body {
+      margin: 0;
+      background: var(--page-bg);
+      color: var(--page-fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      box-sizing: border-box;
+      width: min(100%, 980px);
+      margin: 0 auto;
+      padding: 32px 16px;
+    }
+
+    .markdown-body {
+      box-sizing: border-box;
+      min-height: calc(100vh - 64px);
+      padding: 40px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .status {
+      color: #57606a;
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding: 0;
+      }
+
+      .markdown-body {
+        min-height: 100vh;
+        padding: 24px 16px;
+        border: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <article id="readme" class="markdown-body">
+      <p class="status">Loading README...</p>
+    </article>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@13/marked.min.js"></script>
+  <script>
+    fetch("README.md")
+      .then(function (response) {
+        if (!response.ok) throw new Error("README request failed");
+        return response.text();
+      })
+      .then(function (markdown) {
+        document.getElementById("readme").innerHTML = marked.parse(markdown);
+      })
+      .catch(function () {
+        document.getElementById("readme").innerHTML =
+          '<h1>Academic Reveal.js Tools</h1>' +
+          '<p>README could not be loaded here. Open <a href="README.md">README.md</a>.</p>';
+      });
+  </script>
+</body>
+</html>

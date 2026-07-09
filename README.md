@@ -352,7 +352,7 @@ package install is required.
 
 ## Publishing Checklist
 
-1. Commit only public files: `.gitignore`, `.nojekyll`, `README.md`, and `js/`.
+1. Commit only public files: `.gitignore`, `.nojekyll`, `index.html`, `README.md`, and `js/`.
 2. Push to GitHub.
 3. In GitHub, open repository settings and enable Pages from the `main` branch.
 4. Create a version tag for stable CDN URLs:
