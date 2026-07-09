@@ -80,6 +80,41 @@ Add BibTeX inside the deck:
 </script>
 ```
 
+<details>
+<summary>Use a separate <code>.bib</code> file instead</summary>
+
+You can keep references in a file such as:
+
+```text
+slide/
+  index.html
+  assets/
+    references.bib
+```
+
+Then point `bibtex` to that file:
+
+```html
+<script>
+  Reveal.addEventListener("ready", function () {
+    window.bib = new window.RevealBibtex.RevealBibtex({
+      bibtex: "assets/references.bib",
+      style: "apa",
+      sourceMode: "full",
+      perPage: 7
+    });
+    window.bib.load().then(function (ok) {
+      if (ok) window.bib.render();
+    });
+  });
+</script>
+```
+
+Use a same-site path when possible. If the `.bib` file is hosted on another
+domain, that server must allow browser access with CORS headers.
+
+</details>
+
 Add citation placeholders:
 
 ```html
@@ -193,7 +228,8 @@ Initialize:
   Reveal.addEventListener("ready", function () {
     window.ux = new window.RevealUX.RevealUX({
       wheelThrottleMs: 100,
-      qrToggleKey: "q"
+      qrToggleKey: "q",
+      clickableSlideNumber: true
     }).init();
   });
 </script>
@@ -204,6 +240,20 @@ This adds:
 - overview navigation guidance while Reveal overview is open
 - mouse wheel slide navigation
 - `q` key toggle for the QR code container
+- click-to-jump behavior for Reveal's built-in slide number
+
+Reveal still renders the page number. Enable it in `Reveal.initialize()`:
+
+```js
+Reveal.initialize({
+  slideNumber: "c/t",
+  showSlideNumber: "all"
+});
+```
+
+Then `clickableSlideNumber: true` makes that slide number clickable. Clicking it
+opens a small prompt; entering `12` jumps to slide 12. Empty, invalid, and
+out-of-range input is ignored.
 
 Add matching CSS in your deck theme if you want the overview guide styled:
 
@@ -272,4 +322,3 @@ package install is required.
 git tag v0.1.0
 git push origin v0.1.0
 ```
-

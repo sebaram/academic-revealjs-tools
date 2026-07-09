@@ -3,7 +3,8 @@
    object, exposed on window. Provides:
      - a guidance/controls card shown while the ESC overview is open
      - mouse-wheel browsing inside the overview (Reveal pans as selection moves)
-     - a keyboard toggle for a QR/link element (works with reveal-qr.js) */
+     - a keyboard toggle for a QR/link element (works with reveal-qr.js)
+     - optional click-to-jump behavior for Reveal's slide number */
 (function (root, factory) {
   const api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -19,6 +20,9 @@
       wheelMinDelta: 6,           // ignore tiny trackpad jitter
       qrToggleKey: 'q',
       qrContainerId: 'qrcode',
+      clickableSlideNumber: false,
+      slideNumberSelector: '.reveal .slide-number',
+      slideNumberPrompt: 'Go to slide:',
       guideTitle: 'Overview — how to navigate',
       guideItems: [
         ['Esc', 'Open / close this overview'],
@@ -38,6 +42,7 @@
     if (this.opts.overviewGuide) this._buildGuide();
     if (this.opts.wheelNavigate) this._bindWheelNavigate();
     if (this.opts.qrToggleKey) this._bindQrToggle();
+    if (this.opts.clickableSlideNumber) this._bindClickableSlideNumber();
     return this;
   };
 
@@ -97,6 +102,58 @@
       const el = document.getElementById(self.opts.qrContainerId);
       if (el) el.classList.toggle('rux-hidden');
     });
+  };
+
+  RevealUX.prototype._bindClickableSlideNumber = function () {
+    const self = this;
+    const el = document.querySelector(this.opts.slideNumberSelector);
+    if (!el) { console.warn('[reveal-ux] no ' + this.opts.slideNumberSelector + ' element found'); return; }
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('title', this.opts.slideNumberPrompt);
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      self._promptForSlideNumber();
+    });
+    el.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      ev.preventDefault();
+      self._promptForSlideNumber();
+    });
+  };
+
+  RevealUX.prototype._promptForSlideNumber = function () {
+    const total = this._totalSlideCount();
+    const current = this._currentSlideNumber();
+    const raw = window.prompt(this.opts.slideNumberPrompt, String(current));
+    if (raw === null) return;
+    const target = parseInt(String(raw).trim(), 10);
+    if (!Number.isFinite(target) || target < 1 || target > total) return;
+    this._goToSlideNumber(target);
+  };
+
+  RevealUX.prototype._totalSlideCount = function () {
+    if (window.Reveal.getSlides) return window.Reveal.getSlides().length;
+    return window.Reveal.getTotalSlides ? window.Reveal.getTotalSlides() : 0;
+  };
+
+  RevealUX.prototype._currentSlideNumber = function () {
+    if (window.Reveal.getSlidePastCount) return window.Reveal.getSlidePastCount() + 1;
+    const indices = window.Reveal.getIndices ? window.Reveal.getIndices() : { h: 0 };
+    return (indices.h || 0) + 1;
+  };
+
+  RevealUX.prototype._goToSlideNumber = function (slideNumber) {
+    const targetIndex = slideNumber - 1;
+    if (window.Reveal.getSlides && window.Reveal.getIndices) {
+      const slide = window.Reveal.getSlides()[targetIndex];
+      if (!slide) return;
+      const indices = window.Reveal.getIndices(slide);
+      window.Reveal.slide(indices.h || 0, indices.v || 0, indices.f || 0);
+      return;
+    }
+    window.Reveal.slide(targetIndex);
   };
 
   return { RevealUX };
