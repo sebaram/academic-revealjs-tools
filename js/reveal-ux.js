@@ -4,7 +4,8 @@
      - a guidance/controls card shown while the ESC overview is open
      - mouse-wheel browsing inside the overview (Reveal pans as selection moves)
      - a keyboard toggle for a QR/link element (works with reveal-qr.js)
-     - optional click-to-jump behavior for Reveal's slide number */
+     - optional click-to-jump behavior for Reveal's slide number
+     - optional fixed top/bottom page information bar */
 (function (root, factory) {
   const api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -23,6 +24,7 @@
       clickableSlideNumber: false,
       slideNumberSelector: '.reveal .slide-number',
       slideNumberPrompt: 'Go to slide:',
+      pageInfo: null,
       guideTitle: 'Overview — how to navigate',
       guideItems: [
         ['Esc', 'Open / close this overview'],
@@ -43,6 +45,7 @@
     if (this.opts.wheelNavigate) this._bindWheelNavigate();
     if (this.opts.qrToggleKey) this._bindQrToggle();
     if (this.opts.clickableSlideNumber) this._bindClickableSlideNumber();
+    if (this.opts.pageInfo) this._buildPageInfo();
     return this;
   };
 
@@ -154,6 +157,76 @@
       return;
     }
     window.Reveal.slide(targetIndex);
+  };
+
+  RevealUX.prototype._buildPageInfo = function () {
+    const cfg = Object.assign({
+      position: 'bottom',
+      left: '',
+      center: '',
+      right: '',
+      injectStyle: true,
+    }, this.opts.pageInfo || {});
+    if (cfg.injectStyle) this._injectPageInfoStyle();
+
+    const bar = document.createElement('div');
+    bar.className = 'reveal-ux-page-info is-' + (cfg.position === 'top' ? 'top' : 'bottom');
+    const slots = ['left', 'center', 'right'].map(function (name) {
+      const el = document.createElement('div');
+      el.className = 'rux-page-info-' + name;
+      bar.appendChild(el);
+      return { name, el };
+    });
+    document.body.appendChild(bar);
+    this._pageInfo = { cfg, slots, bar };
+    this._renderPageInfo();
+
+    const self = this;
+    if (window.Reveal.addEventListener) {
+      window.Reveal.addEventListener('slidechanged', function () { self._renderPageInfo(); });
+      window.Reveal.addEventListener('ready', function () { self._renderPageInfo(); });
+    }
+  };
+
+  RevealUX.prototype._injectPageInfoStyle = function () {
+    if (document.getElementById && document.getElementById('reveal-ux-style')) return;
+    const style = document.createElement('style');
+    style.id = 'reveal-ux-style';
+    style.textContent = [
+      '.reveal-ux-page-info{',
+      'position:fixed;left:60px;right:60px;z-index:30;',
+      'display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);',
+      'gap:18px;align-items:center;pointer-events:none;',
+      'font:600 16px/1.2 Inter,Segoe UI,Arial,sans-serif;color:#526070;',
+      '}',
+      '.reveal-ux-page-info.is-top{top:18px;}',
+      '.reveal-ux-page-info.is-bottom{bottom:18px;}',
+      '.reveal-ux-page-info .rux-page-info-left{text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+      '.reveal-ux-page-info .rux-page-info-center{text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+      '.reveal-ux-page-info .rux-page-info-right{text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+    ].join('');
+    (document.head || document.body).appendChild(style);
+  };
+
+  RevealUX.prototype._renderPageInfo = function () {
+    if (!this._pageInfo) return;
+    const context = this._pageInfoContext();
+    this._pageInfo.slots.forEach(function (slot) {
+      const value = this._resolvePageInfoValue(this._pageInfo.cfg[slot.name], context);
+      slot.el.textContent = value;
+    }, this);
+  };
+
+  RevealUX.prototype._pageInfoContext = function () {
+    const indices = window.Reveal.getIndices ? window.Reveal.getIndices() : { h: 0, v: 0, f: 0 };
+    const total = this._totalSlideCount();
+    const current = this._currentSlideNumber();
+    return { Reveal: window.Reveal, indices, current, total };
+  };
+
+  RevealUX.prototype._resolvePageInfoValue = function (value, context) {
+    if (typeof value === 'function') return String(value(context) || '');
+    return String(value || '');
   };
 
   return { RevealUX };

@@ -229,7 +229,13 @@ Initialize:
     window.ux = new window.RevealUX.RevealUX({
       wheelThrottleMs: 100,
       qrToggleKey: "q",
-      clickableSlideNumber: true
+      clickableSlideNumber: true,
+      pageInfo: {
+        position: "top",
+        left: "Presentation title",
+        center: "Seminar name",
+        right: "Presenter - 2026-07-10"
+      }
     }).init();
   });
 </script>
@@ -241,6 +247,7 @@ This adds:
 - mouse wheel slide navigation
 - `q` key toggle for the QR code container
 - click-to-jump behavior for Reveal's built-in slide number
+- optional top or bottom page information bar
 
 Reveal still renders the page number. Enable it in `Reveal.initialize()`:
 
@@ -255,7 +262,39 @@ Then `clickableSlideNumber: true` makes that slide number clickable. Clicking it
 opens a small prompt; entering `12` jumps to slide 12. Empty, invalid, and
 out-of-range input is ignored.
 
-Add matching CSS in your deck theme if you want the overview guide styled:
+`pageInfo` adds a fixed header/footer with three customizable slots. By default,
+`RevealUX` injects a small stylesheet, so no extra CSS file is required.
+
+```js
+pageInfo: {
+  position: "top", // "top" or "bottom"
+  left: "Guiding Users Beyond the Display",
+  center: "UVR Lab seminar",
+  right: ({ current, total }) => current + "/" + total
+}
+```
+
+Slot values can be strings or functions. Functions receive:
+
+```js
+{ Reveal, indices, current, total }
+```
+
+To disable the default injected CSS and style it yourself:
+
+```js
+pageInfo: {
+  position: "bottom",
+  left: "Presentation title",
+  injectStyle: false
+}
+```
+
+The generated classes are `.reveal-ux-page-info`, `.is-top`, `.is-bottom`,
+`.rux-page-info-left`, `.rux-page-info-center`, and `.rux-page-info-right`.
+
+Add matching CSS in your deck theme if you want to override the default
+overview guide styling:
 
 ```css
 .reveal-ux-guide {
