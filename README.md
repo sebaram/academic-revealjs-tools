@@ -1,0 +1,275 @@
+# Academic Reveal.js Tools
+
+Small browser helpers for academic Reveal.js slide decks.
+
+This repository is intended to be public. Keep private talks, paper images,
+PDFs, and unpublished slide content outside the published surface. In this
+workspace, `slide/` is ignored by git and can stay private while the reusable
+JavaScript files in `js/` are served from GitHub Pages or jsDelivr.
+
+## Tools
+
+| File | Purpose |
+| --- | --- |
+| `js/reveal-bibtex.js` | Parse inline or external BibTeX, render citation footers, and generate bibliography slides. |
+| `js/reveal-agenda.js` | Build a clickable agenda/table of contents from slides marked with `data-toc`. |
+| `js/reveal-qr.js` | Show a QR code for the current slide URL. |
+| `js/reveal-ux.js` | Add overview guidance, wheel navigation, and a QR visibility keyboard toggle. |
+
+## CDN Usage
+
+After enabling GitHub Pages for this repository, use the Pages URL directly:
+
+```html
+<script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-bibtex.js"></script>
+<script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-agenda.js"></script>
+<script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-qr.js"></script>
+<script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-ux.js"></script>
+```
+
+For stable public decks, prefer jsDelivr with a git tag:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-bibtex.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-agenda.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-qr.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-ux.js"></script>
+```
+
+Use `@main` only while developing because it can change under existing decks.
+
+## Basic Reveal.js Setup
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/white.css">
+
+<div class="reveal">
+  <div class="slides">
+    <section>...</section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+<script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-bibtex.js"></script>
+<script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-agenda.js"></script>
+<script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-qr.js"></script>
+<script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-ux.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: "c/t",
+    center: false
+  });
+</script>
+```
+
+## BibTeX Citations
+
+Add BibTeX inside the deck:
+
+```html
+<script type="application/x-bibtex" id="refs">
+@article{doe2026,
+  author = {Doe, Jane and Lee, Juyoung},
+  title = {A Useful Academic Slide Tool},
+  journal = {Example Journal},
+  year = {2026},
+  doi = {10.0000/example}
+}
+</script>
+```
+
+Add citation placeholders:
+
+```html
+<section>
+  <h2>Key Result</h2>
+  <p>The result appears here.</p>
+  <div class="source" data-cite="doe2026"></div>
+</section>
+
+<section>
+  <h2>References</h2>
+  <div class="references" data-bibliography></div>
+</section>
+```
+
+Initialize after Reveal is ready:
+
+```html
+<script>
+  Reveal.addEventListener("ready", function () {
+    window.bib = new window.RevealBibtex.RevealBibtex({
+      bibtex: "#refs",
+      style: "apa",
+      sourceMode: "full",
+      perPage: 7
+    });
+    window.bib.load().then(function (ok) {
+      if (ok) window.bib.render();
+    });
+  });
+</script>
+```
+
+Options:
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `bibtex` | `"#refs"` | CSS selector for inline BibTeX, or a URL to a `.bib` file. |
+| `style` | `"apa"` | Citation style. Supported values: `"apa"`, `"ieee"`. |
+| `sourceSelector` | `".source[data-cite]"` | Elements that render slide citations. |
+| `sourceMode` | `"intext"` | `"intext"` for compact citations, `"full"` for full references in footers. |
+| `bibliographySelector` | `"[data-bibliography]"` | Container for generated references. |
+| `perPage` | `0` | Split bibliography into generated slides after this many entries. `0` disables pagination. |
+
+Per-source override:
+
+```html
+<div class="source" data-cite="doe2026" data-cite-mode="intext"></div>
+```
+
+## Agenda
+
+Mark section-start slides:
+
+```html
+<section data-toc="Background">
+  <h2>Why this problem matters</h2>
+</section>
+```
+
+Add an agenda container:
+
+```html
+<section>
+  <h2>Agenda</h2>
+  <div data-agenda></div>
+</section>
+```
+
+Initialize:
+
+```html
+<script>
+  Reveal.addEventListener("ready", function () {
+    window.agenda = new window.RevealAgenda.RevealAgenda();
+    window.agenda.render();
+  });
+</script>
+```
+
+## QR Code
+
+Add a container:
+
+```html
+<div id="qrcode"></div>
+```
+
+Initialize:
+
+```html
+<script>
+  Reveal.addEventListener("ready", function () {
+    window.qr = new RevealQR({
+      hideSlides: [0],
+      showPrintButton: false
+    });
+  });
+</script>
+```
+
+`reveal-qr.js` loads `qrcodejs` from cdnjs if `window.QRCode` is not already
+present.
+
+## Presentation UX
+
+Initialize:
+
+```html
+<script>
+  Reveal.addEventListener("ready", function () {
+    window.ux = new window.RevealUX.RevealUX({
+      wheelThrottleMs: 100,
+      qrToggleKey: "q"
+    }).init();
+  });
+</script>
+```
+
+This adds:
+
+- overview navigation guidance while Reveal overview is open
+- mouse wheel slide navigation
+- `q` key toggle for the QR code container
+
+Add matching CSS in your deck theme if you want the overview guide styled:
+
+```css
+.reveal-ux-guide {
+  pointer-events: none;
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  opacity: 0;
+  background: white;
+  border: 1px solid #d9dee7;
+  padding: 1rem 1.5rem;
+}
+.reveal-ux-guide.is-visible {
+  opacity: 1;
+}
+.rux-hidden {
+  display: none !important;
+}
+```
+
+## Private Slide Workflow
+
+Keep a private local deck like this:
+
+```text
+academic-revealjs-tools/
+  js/              public tools committed to GitHub
+  slide/           private deck, ignored by git
+```
+
+Inside `slide/index.html`, either use local scripts while developing:
+
+```html
+<script src="../js/reveal-bibtex.js"></script>
+```
+
+or use the public CDN URL when the deck lives in another private repository:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-bibtex.js"></script>
+```
+
+## Development
+
+Run the BibTeX unit tests:
+
+```powershell
+node --test js\reveal-bibtex.test.mjs
+```
+
+The test file uses Node's built-in test runner and a small DOM stub, so no
+package install is required.
+
+## Publishing Checklist
+
+1. Commit only public files: `.gitignore`, `.nojekyll`, `README.md`, and `js/`.
+2. Push to GitHub.
+3. In GitHub, open repository settings and enable Pages from the `main` branch.
+4. Create a version tag for stable CDN URLs:
+
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
+
