@@ -405,7 +405,7 @@ package install is required.
 
 ## Publishing Checklist
 
-1. Commit only public files: `.gitignore`, `.nojekyll`, `index.html`, `README.md`, `js/`, and `css/`.
+1. Commit only public files: `.gitignore`, `.nojekyll`, `LICENSE`, `index.html`, `README.md`, `js/`, and `css/`.
 2. Push to GitHub.
 3. In GitHub, open repository settings and enable Pages from the `main` branch.
 4. Create a version tag for stable CDN URLs:
@@ -414,3 +414,7 @@ package install is required.
 git tag v0.1.0
 git push origin v0.1.0
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).
