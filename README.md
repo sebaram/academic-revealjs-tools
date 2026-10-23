@@ -293,8 +293,9 @@ pageInfo: {
 The generated classes are `.reveal-ux-page-info`, `.is-top`, `.is-bottom`,
 `.rux-page-info-left`, `.rux-page-info-center`, and `.rux-page-info-right`.
 
-Add matching CSS in your deck theme if you want to override the default
-overview guide styling:
+`RevealUX` also injects default styles for the overview guide (a shortcut card
+shown while ESC overview is open; hidden on phones) and for the `q` QR toggle.
+They are inserted first in `<head>`, so your deck CSS overrides them. Example:
 
 ```css
 .reveal-ux-guide {

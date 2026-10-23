@@ -41,6 +41,7 @@
 
   RevealUX.prototype.init = function () {
     if (typeof window === 'undefined' || !window.Reveal) { console.warn('[reveal-ux] Reveal not found'); return; }
+    if (this.opts.overviewGuide || this.opts.qrToggleKey) this._injectBaseStyle();
     if (this.opts.overviewGuide) this._buildGuide();
     if (this.opts.wheelNavigate) this._bindWheelNavigate();
     if (this.opts.qrToggleKey) this._bindQrToggle();
@@ -186,6 +187,29 @@
       window.Reveal.addEventListener('slidechanged', function () { self._renderPageInfo(); });
       window.Reveal.addEventListener('ready', function () { self._renderPageInfo(); });
     }
+  };
+
+  // Default look for the overview guide and the QR toggle. Inserted first in <head>
+  // so a deck's own CSS for the same selectors wins.
+  RevealUX.prototype._injectBaseStyle = function () {
+    if (document.getElementById('reveal-ux-base-style')) return;
+    const style = document.createElement('style');
+    style.id = 'reveal-ux-base-style';
+    style.textContent = [
+      '.reveal-ux-guide{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:50;',
+      'pointer-events:none;opacity:0;transition:opacity .2s;',
+      'background:#fff;color:#1f2933;border:1px solid #d9dee7;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.18);',
+      'padding:14px 20px;font:400 15px/1.35 Inter,Segoe UI,Arial,sans-serif;',
+      'display:grid;grid-template-columns:repeat(2,auto);gap:6px 28px;}',
+      '.reveal-ux-guide.is-visible{opacity:1;}',
+      '.reveal-ux-guide .rux-guide-title{grid-column:1/-1;font-weight:700;margin-bottom:4px;}',
+      '.reveal-ux-guide .rux-guide-row{display:flex;align-items:center;gap:10px;white-space:nowrap;}',
+      '.reveal-ux-guide kbd{min-width:2.2em;text-align:center;padding:2px 7px;border:1px solid #c5ccd6;border-bottom-width:2px;',
+      'border-radius:6px;background:#f4f6f9;font:600 13px/1.4 ui-monospace,Consolas,monospace;}',
+      '@media (max-width:700px),(max-height:500px){.reveal-ux-guide{display:none;}}',
+      '.rux-hidden{display:none !important;}',
+    ].join('');
+    document.head.insertBefore(style, document.head.firstChild);
   };
 
   RevealUX.prototype._injectPageInfoStyle = function () {
