@@ -77,7 +77,10 @@
       if (now - self._lastWheel < self.opts.wheelThrottleMs) return;
       self._lastWheel = now;
       ev.preventDefault();
-      if (ev.deltaY > 0) window.Reveal.next(); else window.Reveal.prev();
+      // In the overview, step whole slides; fragments only matter when presenting.
+      if (window.Reveal.isOverview && window.Reveal.isOverview()) {
+        if (ev.deltaY > 0) window.Reveal.right({ skipFragments: true }); else window.Reveal.left({ skipFragments: true });
+      } else if (ev.deltaY > 0) window.Reveal.next(); else window.Reveal.prev();
     }, { passive: false });
   };
 
