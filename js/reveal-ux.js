@@ -18,6 +18,7 @@
       overviewGuide: true,
       wheelNavigate: true,        // mouse-wheel moves to prev/next slide (normal + overview)
       wheelThrottleMs: 280,       // min gap between wheel-driven moves (tames momentum scroll)
+      overviewWheelThrottleMs: 90, // shorter gap in the overview, where fast browsing is the point
       wheelMinDelta: 6,           // ignore tiny trackpad jitter
       qrToggleKey: 'q',
       qrContainerId: 'qrcode',
@@ -74,11 +75,12 @@
       if (self._scrollableAncestorCanScroll(ev.target, ev.deltaY)) return;
       if (Math.abs(ev.deltaY) < self.opts.wheelMinDelta) return;
       const now = (window.performance && performance.now) ? performance.now() : +new Date();
-      if (now - self._lastWheel < self.opts.wheelThrottleMs) return;
+      const overview = window.Reveal.isOverview && window.Reveal.isOverview();
+      if (now - self._lastWheel < (overview ? self.opts.overviewWheelThrottleMs : self.opts.wheelThrottleMs)) return;
       self._lastWheel = now;
       ev.preventDefault();
       // In the overview, step whole slides; fragments only matter when presenting.
-      if (window.Reveal.isOverview && window.Reveal.isOverview()) {
+      if (overview) {
         if (ev.deltaY > 0) window.Reveal.right({ skipFragments: true }); else window.Reveal.left({ skipFragments: true });
       } else if (ev.deltaY > 0) window.Reveal.next(); else window.Reveal.prev();
     }, { passive: false });

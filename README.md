@@ -296,7 +296,8 @@ This adds:
 
 - a keyboard shortcut card while the Reveal overview (Esc) is open
 - mouse wheel slide navigation; in the overview, each tick moves a whole slide
-  and skips fragments
+  and skips fragments. `wheelThrottleMs` (default 280) sets the gap between moves
+  while presenting, `overviewWheelThrottleMs` (default 90) in the overview
 - `q` key toggle for the QR code container
 - click-to-jump behavior for Reveal's built-in slide number
 - optional top or bottom page information bar (smaller text and margins on phones)
