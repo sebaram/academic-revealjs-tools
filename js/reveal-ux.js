@@ -204,6 +204,11 @@
       '.reveal-ux-page-info .rux-page-info-left{text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
       '.reveal-ux-page-info .rux-page-info-center{text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
       '.reveal-ux-page-info .rux-page-info-right{text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
+      '@media (max-width:700px),(max-height:500px){',
+      '.reveal-ux-page-info{left:10px;right:10px;gap:8px;font-size:10px;}',
+      '.reveal-ux-page-info.is-top{top:6px;}',
+      '.reveal-ux-page-info.is-bottom{bottom:6px;}',
+      '}',
     ].join('');
     (document.head || document.body).appendChild(style);
   };

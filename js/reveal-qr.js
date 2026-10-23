@@ -9,6 +9,15 @@ class RevealQR {
         
         // Bind event handlers
         this.updateQRCode = this.updateQRCode.bind(this);
+
+        // A QR of the slide link is useless on the phone that is showing it, and its fixed size covers the slide.
+        if (this.qrContainer) this.qrContainer.classList.add('reveal-qr');
+        if (!document.getElementById('reveal-qr-style')) {
+            const style = document.createElement('style');
+            style.id = 'reveal-qr-style';
+            style.textContent = '@media (max-width: 700px), (max-height: 500px) { .reveal-qr { display: none !important; } }';
+            document.head.appendChild(style);
+        }
         
         // Load QR Code library first, then initialize
         this.loadQRCodeLibrary().then(() => {
