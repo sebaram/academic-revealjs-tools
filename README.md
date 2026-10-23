@@ -15,6 +15,7 @@ JavaScript files in `js/` are served from GitHub Pages or jsDelivr.
 | `js/reveal-agenda.js` | Build a clickable agenda/table of contents from slides marked with `data-toc`. |
 | `js/reveal-qr.js` | Show a QR code for the current slide URL. |
 | `js/reveal-ux.js` | Add overview guidance, wheel navigation, and a QR visibility keyboard toggle. |
+| `css/juyoung-theme.css` | Default slide style (colours, type, tiles, cards, chips, part dividers) for 1920x1080 decks on the Reveal white theme. |
 
 ## CDN Usage
 
