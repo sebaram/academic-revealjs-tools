@@ -22,6 +22,7 @@ JavaScript files in `js/` are served from GitHub Pages or jsDelivr.
 After enabling GitHub Pages for this repository, use the Pages URL directly:
 
 ```html
+<link rel="stylesheet" href="https://sebaram.github.io/academic-revealjs-tools/css/juyoung-theme.css">
 <script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-bibtex.js"></script>
 <script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-agenda.js"></script>
 <script src="https://sebaram.github.io/academic-revealjs-tools/js/reveal-qr.js"></script>
@@ -31,6 +32,7 @@ After enabling GitHub Pages for this repository, use the Pages URL directly:
 For stable public decks, prefer jsDelivr with a git tag:
 
 ```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/css/juyoung-theme.css">
 <script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-bibtex.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-agenda.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-qr.js"></script>
@@ -44,7 +46,10 @@ Use `@main` only while developing because it can change under existing decks.
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/white.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=Noto+Sans+KR:wght@400;700&family=Source+Serif+4:ital,wght@0,400;1,400&display=swap">
+<link rel="stylesheet" href="https://sebaram.github.io/academic-revealjs-tools/css/juyoung-theme.css">
 
+<div id="qrcode"></div>
 <div class="reveal">
   <div class="slides">
     <section>...</section>
@@ -59,11 +64,55 @@ Use `@main` only while developing because it can change under existing decks.
 <script>
   Reveal.initialize({
     hash: true,
-    slideNumber: "c/t",
-    center: false
+    width: 1920,
+    height: 1080,
+    margin: 0,
+    center: false,
+    slideNumber: "c/t"
   });
 </script>
 ```
+
+## Theme
+
+`css/juyoung-theme.css` is a default slide style: navy/orange palette, Inter
+type, and a small set of layout pieces. Load it after the Reveal white theme.
+It assumes 1920x1080 slides with `margin: 0` and `center: false`, and the
+Google Fonts link shown above (Source Serif 4 is only used by `.quote`).
+
+| Class | Use |
+| --- | --- |
+| `.kicker` | Small italic line above a slide title. |
+| `.hl`, `.muted`, `.good-t`, `.bad-t` | Accent, grey, green and red text. |
+| `.big`, `.small`, `.tiny`, `.center` | Text size and alignment. |
+| `.cols`, `.cols-3`, `.cols-4` | 2, 3 or 4 column grids. |
+| `.card`, `.tile` (`.o`, `.x`), `.tiles-sm`, `.tall` | Panels and icon tiles (`.o` orange icon, `.x` crossed out). |
+| `.chips` + `.chip` (`.o`) | Pill labels. |
+| `.fig`, `.cap`, `.source` | Figure, caption, citation footer (pairs with `data-cite`). |
+| `section.title-slide`, `section.part` | Title slide and part divider (`.num`, `h2`, `p`). |
+| `table.cmp`, `.flow`, `.steps`/`.step` | Comparison table, tile flow with arrows, numbered step list. |
+| `.quote`, `.quote-by`, `.widget`, `.btn` | Pull quote and interactive widget box. |
+
+Colours are CSS variables on `:root` (`--navy`, `--accent`, `--ink`, `--muted`,
+`--line`, `--soft`, `--good`, `--bad`, `--slate`); override them in the deck to
+re-tint everything. Keep layouts used by only one deck in that deck's `<style>`.
+
+Example slide:
+
+```html
+<section>
+  <div class="kicker">1 · What to evaluate</div>
+  <h2>Three kinds of evaluation</h2>
+  <div class="cols-3">
+    <div class="tile o"><i data-lucide="cpu"></i><b>System</b><span>Does it work?</span></div>
+    <div class="tile o"><i data-lucide="timer"></i><b>User</b><span>Can people use it?</span></div>
+    <div class="tile"><i data-lucide="message-circle"></i><b>Subjective</b><span>Do people want it?</span></div>
+  </div>
+  <div class="source" data-cite="lee2024whirling"></div>
+</section>
+```
+
+Icons in the examples are [Lucide](https://lucide.dev); call `lucide.createIcons()` after loading it.
 
 ## BibTeX Citations
 
@@ -218,7 +267,8 @@ Initialize:
 ```
 
 `reveal-qr.js` loads `qrcodejs` from cdnjs if `window.QRCode` is not already
-present.
+present. The QR is hidden on phones (viewport under 700px wide or 500px tall):
+a link to the slide is not useful on the device already showing it.
 
 ## Presentation UX
 
@@ -244,11 +294,12 @@ Initialize:
 
 This adds:
 
-- overview navigation guidance while Reveal overview is open
-- mouse wheel slide navigation
+- a keyboard shortcut card while the Reveal overview (Esc) is open
+- mouse wheel slide navigation; in the overview, each tick moves a whole slide
+  and skips fragments
 - `q` key toggle for the QR code container
 - click-to-jump behavior for Reveal's built-in slide number
-- optional top or bottom page information bar
+- optional top or bottom page information bar (smaller text and margins on phones)
 
 Reveal still renders the page number. Enable it in `Reveal.initialize()`:
 
@@ -354,7 +405,7 @@ package install is required.
 
 ## Publishing Checklist
 
-1. Commit only public files: `.gitignore`, `.nojekyll`, `index.html`, `README.md`, and `js/`.
+1. Commit only public files: `.gitignore`, `.nojekyll`, `index.html`, `README.md`, `js/`, and `css/`.
 2. Push to GitHub.
 3. In GitHub, open repository settings and enable Pages from the `main` branch.
 4. Create a version tag for stable CDN URLs:
