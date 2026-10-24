@@ -168,17 +168,21 @@
     return url ? { url, text: url } : null;
   };
   const _esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // APA-style short author list: "Lee", "Lee & Kim", "Lee et al."
+  const _shortNames = (e) => {
+    const a = e.authors;
+    if (a.length === 0) return _esc(_d(e.fields.title).split(/\s+/).slice(0, 2).join(' '));
+    if (a.length === 1) return _esc(a[0].family);
+    if (a.length === 2) return _esc(a[0].family) + ' & ' + _esc(a[1].family);
+    return _esc(a[0].family) + ' et al.';
+  };
+  // Footer line with short authors and the title, no venue or link: "Lee et al. (2024). Title."
+  const _shortRef = (e) => '<p>' + _shortNames(e) + ' (' + _esc(_d(e.fields.year)) + '). <em>' + _esc(_d(e.fields.title)) + '.</em></p>';
 
   BibtexStyles.register('apa', {
     numbered: false,
     inText(e) {
-      const a = e.authors, y = _d(e.fields.year);
-      let names;
-      if (a.length === 0) names = _esc(_d(e.fields.title).split(/\s+/).slice(0, 2).join(' '));
-      else if (a.length === 1) names = _esc(a[0].family);
-      else if (a.length === 2) names = _esc(a[0].family) + ' & ' + _esc(a[1].family);
-      else names = _esc(a[0].family) + ' et al.';
-      return '<span class="cite-intext">(' + names + ', ' + _esc(y) + ')</span>';
+      return '<span class="cite-intext">(' + _shortNames(e) + ', ' + _esc(_d(e.fields.year)) + ')</span>';
     },
     bibEntry(e) {
       const a = e.authors.map(x => _esc(x.family) + ', ' + _esc(_initials(x.given)));
@@ -229,7 +233,7 @@
       bibtex: '#refs',
       style: 'apa',
       sourceSelector: '.source[data-cite]',
-      sourceMode: 'intext',   // 'intext' -> (Author, year)/[n]; 'full' -> full formatted reference
+      sourceMode: 'intext',   // 'intext' -> (Author, year)/[n]; 'short' -> Author et al. (year). Title.; 'full' -> full formatted reference
       bibliographySelector: '[data-bibliography]',
       perPage: 0,
     }, options || {});
@@ -278,19 +282,20 @@
     document.querySelectorAll('section[data-bibtex-generated]').forEach(function (s) { s.remove(); });
 
     // 1) Source footers. Each footer renders either the short in-text citation
-    // or the full formatted reference, chosen per-element via data-cite-mode or
-    // globally via opts.sourceMode ('intext' | 'full').
+    // a short "Author et al. (year). Title." line, or the full formatted reference,
+    // chosen per-element via data-cite-mode or globally via opts.sourceMode
+    // ('intext' | 'short' | 'full').
     document.querySelectorAll(this.opts.sourceSelector).forEach(function (el) {
       const keys = el.getAttribute('data-cite').split(/[,\s]+/).filter(Boolean);
       const mode = el.getAttribute('data-cite-mode') || self.opts.sourceMode;
-      const full = mode === 'full';
+      const block = mode === 'full' || mode === 'short';
       el.innerHTML = keys.map(function (key) {
         const e = self.entries[key];
         if (!e) { console.warn('[reveal-bibtex] unknown key:', key); return '<span class="cite-missing">[?' + key + ']</span>'; }
         const num = self._numberOf(key);
-        return full ? style.bibEntry(e, num) : style.inText(e, num);
-      }).join(full ? '' : ' ');
-      el.setAttribute('data-cite-rendered', full ? 'full' : 'intext');
+        return mode === 'full' ? style.bibEntry(e, num) : mode === 'short' ? _shortRef(e) : style.inText(e, num);
+      }).join(block ? '' : ' ');
+      el.setAttribute('data-cite-rendered', block ? mode : 'intext');
     });
 
     // 2) Bibliography container(s). After step 0, every container matched

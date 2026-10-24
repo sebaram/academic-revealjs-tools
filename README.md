@@ -205,7 +205,7 @@ Options:
 | `bibtex` | `"#refs"` | CSS selector for inline BibTeX, or a URL to a `.bib` file. |
 | `style` | `"apa"` | Citation style. Supported values: `"apa"`, `"ieee"`. |
 | `sourceSelector` | `".source[data-cite]"` | Elements that render slide citations. |
-| `sourceMode` | `"intext"` | `"intext"` for compact citations, `"full"` for full references in footers. |
+| `sourceMode` | `"intext"` | `"intext"` for compact citations (`(Lee et al., 2024)`), `"short"` for short authors plus title (`Lee et al. (2024). Title.`), `"full"` for full references in footers. Override per footer with `data-cite-mode`. |
 | `bibliographySelector` | `"[data-bibliography]"` | Container for generated references. |
 | `perPage` | `0` | Split bibliography into generated slides after this many entries. `0` disables pagination. |
 
