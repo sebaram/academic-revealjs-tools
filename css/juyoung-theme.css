@@ -75,7 +75,8 @@ section.part p { color: #c9d6e3; font-size: 42px; max-width: 1300px; }
 .agenda-list { margin: 30px 0 0 !important; padding: 0; }
 .agenda-list li { margin: 26px 0; }
 .agenda-item { display: flex; align-items: center; gap: 30px; text-decoration: none !important; color: var(--ink) !important; font-size: 54px; font-weight: 700; }
-.agenda-num { width: 86px; height: 86px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 900; }
+.agenda-num { width: 86px; height: 86px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 900; flex-shrink: 0; }
+.agenda-item .agenda-sub { display: block; line-height: 1.3; font-size: 32px; font-weight: 400; color: var(--muted); margin-top: 6px; }
 
 /* Simple tables */
 table.cmp { width: 100%; border-collapse: collapse; font-size: 34px; }

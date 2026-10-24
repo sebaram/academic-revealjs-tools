@@ -61,6 +61,13 @@
       const text = document.createElement('span');
       text.className = 'agenda-label';
       text.textContent = label;
+      const sub = sec.getAttribute('data-toc-sub');   // optional second line under the label
+      if (sub) {
+        const small = document.createElement('small');
+        small.className = 'agenda-sub';
+        small.textContent = sub;
+        text.appendChild(small);
+      }
       a.appendChild(text);
 
       a.addEventListener('click', function (ev) {

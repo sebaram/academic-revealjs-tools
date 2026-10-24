@@ -225,6 +225,13 @@ Mark section-start slides:
 </section>
 ```
 
+Add `data-toc-sub` for an optional second line under the agenda label (styled
+by `.agenda-sub` in `juyoung-theme.css`):
+
+```html
+<section data-toc="Statistics" data-toc-sub="5.6 s vs 6.8 s: real difference, or luck?">
+```
+
 Add an agenda container:
 
 ```html
