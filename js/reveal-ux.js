@@ -18,7 +18,7 @@
       overviewGuide: true,
       wheelNavigate: true,        // mouse-wheel moves to prev/next slide (normal + overview)
       wheelThrottleMs: 280,       // min gap between wheel-driven moves (tames momentum scroll)
-      overviewWheelThrottleMs: 90, // shorter gap in the overview, where fast browsing is the point
+      overviewWheelPxPerSlide: 110, // overview: wheel distance maps to slides, no throttle, so a free-spin wheel flies
       wheelMinDelta: 6,           // ignore tiny trackpad jitter
       qrToggleKey: 'q',
       qrContainerId: 'qrcode',
@@ -38,6 +38,7 @@
       ],
     }, options || {});
     this._lastWheel = 0;
+    this._wheelAcc = 0;
   }
 
   RevealUX.prototype.init = function () {
@@ -74,16 +75,26 @@
       // wheel first; only navigate when the slide itself can't scroll.
       if (self._scrollableAncestorCanScroll(ev.target, ev.deltaY)) return;
       if (Math.abs(ev.deltaY) < self.opts.wheelMinDelta) return;
-      const now = (window.performance && performance.now) ? performance.now() : +new Date();
-      const overview = window.Reveal.isOverview && window.Reveal.isOverview();
-      if (now - self._lastWheel < (overview ? self.opts.overviewWheelThrottleMs : self.opts.wheelThrottleMs)) return;
-      self._lastWheel = now;
       ev.preventDefault();
-      // In the overview, step whole slides; fragments only matter when presenting.
-      if (overview) {
-        if (ev.deltaY > 0) window.Reveal.right({ skipFragments: true }); else window.Reveal.left({ skipFragments: true });
-      } else if (ev.deltaY > 0) window.Reveal.next(); else window.Reveal.prev();
+      // Overview: distance, not ticks. Accumulate pixels and move as many whole
+      // slides as the wheel travelled, so a free-spin wheel crosses the deck in one flick.
+      if (window.Reveal.isOverview && window.Reveal.isOverview()) {
+        const px = ev.deltaMode === 1 ? ev.deltaY * 40 : ev.deltaMode === 2 ? ev.deltaY * 800 : ev.deltaY;
+        self._wheelAcc += px;
+        const n = Math.trunc(self._wheelAcc / self.opts.overviewWheelPxPerSlide);
+        if (n !== 0) {
+          self._wheelAcc -= n * self.opts.overviewWheelPxPerSlide;
+          window.Reveal.slide(Math.max(0, window.Reveal.getIndices().h + n), 0);
+        }
+        return;
+      }
+      // Presenting: one step per move, throttled so momentum scroll does not skip ahead.
+      const now = (window.performance && performance.now) ? performance.now() : +new Date();
+      if (now - self._lastWheel < self.opts.wheelThrottleMs) return;
+      self._lastWheel = now;
+      if (ev.deltaY > 0) window.Reveal.next(); else window.Reveal.prev();
     }, { passive: false });
+    if (window.Reveal.addEventListener) window.Reveal.addEventListener('overviewshown', function () { self._wheelAcc = 0; });
   };
 
   // Walk up from the wheel target; if an ancestor actually overflows and is not
