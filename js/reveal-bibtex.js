@@ -108,7 +108,10 @@
     parseAuthors(str) {
       if (!str) return [];
       return str.split(/\s+and\s+/i).map((raw) => {
-        const name = this.decodeLatex(raw.trim());
+        const r = raw.trim();
+        // {Google / X}: a braced name is a corporate author, kept whole as the family name.
+        if (r.startsWith('{') && r.endsWith('}')) return { family: this.decodeLatex(r.slice(1, -1)), given: '' };
+        const name = this.decodeLatex(r);
         if (name.includes(',')) {
           const [family, given] = name.split(',');
           return { family: family.trim(), given: (given || '').trim() };
@@ -185,7 +188,7 @@
       return '<span class="cite-intext">(' + _shortNames(e) + ', ' + _esc(_d(e.fields.year)) + ')</span>';
     },
     bibEntry(e) {
-      const a = e.authors.map(x => _esc(x.family) + ', ' + _esc(_initials(x.given)));
+      const a = e.authors.map(x => x.given ? _esc(x.family) + ', ' + _esc(_initials(x.given)) : _esc(x.family));
       let authorStr = a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ', &amp; ' + a[a.length - 1];
       const y = _esc(_d(e.fields.year));
       const title = _esc(_d(e.fields.title));
@@ -195,7 +198,8 @@
       const link = _link(e.fields);
       const linkHtml = link ? ' <a href="' + _esc(link.url) + '">' + _esc(link.text) + '</a>' : '';
       const authorPrefix = authorStr ? authorStr + ' ' : '';
-      return '<p>' + authorPrefix + '(' + y + '). ' + title + '. <em>' + venue + '</em>' + vol + pages + '.' + linkHtml + '</p>';
+      const venuePart = venue ? ' <em>' + venue + '</em>' + vol + pages + '.' : '';  // web sources have no venue
+      return '<p>' + authorPrefix + '(' + y + '). ' + title + '.' + venuePart + linkHtml + '</p>';
     },
     sort(entries) {
       return entries.slice().sort((x, y) => {
@@ -206,7 +210,7 @@
     },
   });
 
-  const _ieeeName = (a) => _esc(_initials(a.given)).replace(/\s+/g, ' ') .trim() + ' ' + _esc(a.family);
+  const _ieeeName = (a) => a.given ? _esc(_initials(a.given)).replace(/\s+/g, ' ').trim() + ' ' + _esc(a.family) : _esc(a.family);
   const _q = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
   BibtexStyles.register('ieee', {
@@ -224,7 +228,8 @@
       const link = _link(e.fields);
       const linkHtml = link ? ' <a href="' + _q(link.url) + '">' + _esc(link.text) + '</a>' : '';
       const authorPrefix = authorStr ? authorStr + ', ' : '';
-      return '<p>[' + n + '] ' + authorPrefix + '&quot;' + title + ',&quot; <em>' + venue + '</em>, ' + y + '.' + linkHtml + '</p>';
+      const venuePart = venue ? ' <em>' + venue + '</em>,' : '';  // web sources have no venue
+      return '<p>[' + n + '] ' + authorPrefix + '&quot;' + title + ',&quot;' + venuePart + ' ' + y + '.' + linkHtml + '</p>';
     },
     sort(entries) { return entries.slice(); },
   });
