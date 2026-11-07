@@ -130,6 +130,11 @@ Add BibTeX inside the deck:
 </script>
 ```
 
+Wrap a company or group author in an extra pair of braces, as in BibTeX:
+`author = {{Google / X}}` renders as "Google / X" instead of being split into a
+given name and family name. Entries without a journal or booktitle, such as web
+pages, are formatted without an empty venue.
+
 <details>
 <summary>Use a separate <code>.bib</code> file instead</summary>
 
