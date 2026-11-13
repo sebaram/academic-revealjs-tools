@@ -12,14 +12,19 @@
   if (typeof window !== 'undefined') window.RevealUX = api;
 })(this, function () {
   'use strict';
+  // Read before Reveal starts: its scroll view rewrites the hash while images load.
+  const initialHash = typeof location !== 'undefined' ? location.hash : '';
 
   function RevealUX(options) {
     this.opts = Object.assign({
       overviewGuide: true,
       wheelNavigate: true,        // mouse-wheel moves to prev/next slide (normal + overview)
-      wheelThrottleMs: 280,       // min gap between wheel-driven moves (tames momentum scroll)
+      wheelThrottleMs: 80,        // min gap between wheel-driven moves (tames momentum scroll)
       overviewWheelPxPerSlide: 110, // overview: wheel distance maps to slides, no throttle, so a free-spin wheel flies
       wheelMinDelta: 6,           // ignore tiny trackpad jitter
+      scrollViewFragments: false, // phones read, not present: show all fragments in Reveal's scroll view
+      scrollViewLayout: 'compact', // scroll view stacks slides at their own height, several per screen ('full' = Reveal's one per screen)
+      instantHash: true,          // write #/h/v/f on every move (Reveal throttles its own write to 1/s)
       qrToggleKey: 'q',
       qrContainerId: 'qrcode',
       clickableSlideNumber: false,
@@ -46,6 +51,11 @@
     if (this.opts.overviewGuide || this.opts.qrToggleKey) this._injectBaseStyle();
     if (this.opts.overviewGuide) this._buildGuide();
     if (this.opts.wheelNavigate) this._bindWheelNavigate();
+    const c = window.Reveal.getConfig();
+    this._authored = { hash: !!c.hash, scrollLayout: c.scrollLayout, scrollSnap: c.scrollSnap };
+    if (this.opts.instantHash) this._bindInstantHash();
+    this._adaptToScrollView();
+    this._keepScrollViewDeepLink();
     if (this.opts.qrToggleKey) this._bindQrToggle();
     if (this.opts.clickableSlideNumber) this._bindClickableSlideNumber();
     if (this.opts.pageInfo) this._buildPageInfo();
@@ -73,6 +83,7 @@
     document.addEventListener('wheel', function (ev) {
       // Let a genuinely scrollable region (overflowing content) consume the
       // wheel first; only navigate when the slide itself can't scroll.
+      if (self._isScrollView()) return; // Reveal's scroll view (phones): let the page scroll natively
       if (self._scrollableAncestorCanScroll(ev.target, ev.deltaY)) return;
       if (Math.abs(ev.deltaY) < self.opts.wheelMinDelta) return;
       ev.preventDefault();
@@ -95,6 +106,102 @@
       if (ev.deltaY > 0) window.Reveal.next(); else window.Reveal.prev();
     }, { passive: false });
     if (window.Reveal.addEventListener) window.Reveal.addEventListener('overviewshown', function () { self._wheelAcc = 0; });
+  };
+
+  RevealUX.prototype._isScrollView = function () {
+    return !!(window.Reveal.isScrollView && window.Reveal.isScrollView());
+  };
+
+  // Scroll view: the slide a reader is on is the top one on screen (the first page
+  // whose middle is still below the top edge). Reveal's own pick follows scroll
+  // progress through the whole deck and drifts once several slides share a screen.
+  RevealUX.prototype._topIndices = function () {
+    const pages = document.querySelectorAll('.reveal .scroll-page');
+    let page = null;
+    for (let k = 0; k < pages.length && !page; k++) {
+      const r = pages[k].getBoundingClientRect();
+      if (r.top + r.height / 2 > 0) page = pages[k];
+    }
+    const slide = page && window.Reveal.getSlides().find(function (s) { return s.closest('.scroll-page') === page; });
+    return slide ? window.Reveal.getIndices(slide) : window.Reveal.getIndices();
+  };
+
+  RevealUX.prototype._goTo = function (i) {
+    if (!this._isScrollView()) { window.Reveal.slide(i.h, i.v || 0); return; }
+    // getSlide() finds nothing in scroll view (slides are re-wrapped), so match indices.
+    const slide = window.Reveal.getSlides().find(function (s) {
+      const j = window.Reveal.getIndices(s);
+      return j.h === i.h && (j.v || 0) === (i.v || 0);
+    });
+    const page = slide && slide.closest('.scroll-page');
+    if (page) page.scrollIntoView();
+  };
+
+  // Reveal 5.1's scroll view jumps to #/h/v before images load, so the layout
+  // shift leaves a deep link on an earlier slide. Jump again once all is loaded.
+  // Named links (#/some-id) are left to Reveal.
+  RevealUX.prototype._keepScrollViewDeepLink = function () {
+    // No hash means the start: the browser may carry over a scroll offset from the tab's last page.
+    const m = /^#\/(\d+)(?:\/(\d+))?/.exec(initialHash) || [null, 0, 0];
+    const self = this;
+    function jump() { if (self._isScrollView()) self._goTo({ h: +m[1], v: +(m[2] || 0) }); }
+    // setTimeout: on 'ready' Reveal has not finished laying out the scroll pages yet.
+    if (document.readyState === 'complete') setTimeout(jump, 0); else window.addEventListener('load', function () { setTimeout(jump, 0); });
+  };
+
+  // Scroll view (phones) is for reading: several slides per screen without snapping,
+  // every fragment shown, and instantHash owns the address (Reveal 5.1's delayed
+  // write there blanks it). Crossing the width keeps the slide the reader was on.
+  RevealUX.prototype._adaptToScrollView = function () {
+    const self = this, a = this._authored;
+    let adapted = false, resizing = false, at = window.Reveal.getIndices();
+    // Remember the reader's slide as they go; at a switch the resize has already moved the layout.
+    window.Reveal.on('slidechanged', function () { if (!resizing && !self._isScrollView()) at = window.Reveal.getIndices(); });
+    document.addEventListener('scroll', function () { if (!resizing && self._isScrollView()) at = self._topIndices(); }, true);
+    function sync() {
+      const sv = self._isScrollView();
+      requestAnimationFrame(function () { resizing = false; }); // after the scroll events this resize caused
+      if (sv === adapted) return;
+      adapted = sv;
+      // Rename rather than configure({fragments:false}): Reveal still reserves scroll space per .fragment.
+      if (!self.opts.scrollViewFragments) {
+        document.querySelectorAll(sv ? '.reveal .slides .fragment' : '.reveal .slides .rux-fragment').forEach(function (e) {
+          e.classList.replace(sv ? 'fragment' : 'rux-fragment', sv ? 'rux-fragment' : 'fragment');
+        });
+      }
+      const compact = sv && self.opts.scrollViewLayout === 'compact';
+      window.Reveal.configure({
+        hash: a.hash && !(sv && self.opts.instantHash),
+        scrollLayout: sv && self.opts.scrollViewLayout ? self.opts.scrollViewLayout : a.scrollLayout,
+        scrollSnap: compact ? false : a.scrollSnap,
+      });
+      self._goTo(at);
+    }
+    sync();
+    // A rotated phone or resized window can cross scrollActivationWidth; wait a tick for Reveal to switch views.
+    window.addEventListener('resize', function () { resizing = true; setTimeout(sync, 0); });
+  };
+
+  RevealUX.prototype._bindInstantHash = function () {
+    const self = this;
+    function write(i) {
+      if (!self._authored.hash) return;
+      const f = i.f === undefined ? -1 : i.f;
+      const h = '#/' + i.h + (i.v > 0 || f >= 0 ? '/' + i.v : '') + (f >= 0 ? '/' + f : '');
+      if (location.hash === h) return;
+      // Safari throws once a page exceeds ~100 replaceState calls per 10 s; the next move writes again.
+      try { history.replaceState(null, '', location.pathname + location.search + h); } catch (e) {}
+    }
+    ['slidechanged', 'fragmentshown', 'fragmenthidden'].forEach(function (ev) {
+      window.Reveal.on(ev, function () { if (!self._isScrollView()) write(window.Reveal.getIndices()); });
+    });
+    let queued = false;
+    // Scroll events don't bubble; capture catches the scroll view's container.
+    document.addEventListener('scroll', function () {
+      if (queued || !self._isScrollView()) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; const i = self._topIndices(); write({ h: i.h, v: i.v }); });
+    }, true);
   };
 
   // Walk up from the wheel target; if an ancestor actually overflows and is not
@@ -241,6 +348,7 @@
       '}',
       '.reveal-ux-page-info.is-top{top:18px;}',
       '.reveal-ux-page-info.is-bottom{bottom:18px;}',
+      '.reveal-scroll .reveal-ux-page-info{display:none;}',
       '.reveal-ux-page-info .rux-page-info-left{text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
       '.reveal-ux-page-info .rux-page-info-center{text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',
       '.reveal-ux-page-info .rux-page-info-right{text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}',

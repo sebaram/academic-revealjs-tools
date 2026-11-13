@@ -290,7 +290,6 @@ Initialize:
 <script>
   Reveal.addEventListener("ready", function () {
     window.ux = new window.RevealUX.RevealUX({
-      wheelThrottleMs: 100,
       qrToggleKey: "q",
       clickableSlideNumber: true,
       pageInfo: {
@@ -308,13 +307,32 @@ This adds:
 
 - a keyboard shortcut card while the Reveal overview (Esc) is open
 - mouse wheel slide navigation. While presenting, one slide per move with a
-  `wheelThrottleMs` gap (default 280) so momentum scroll does not skip ahead. In
+  `wheelThrottleMs` gap (default 80) so momentum scroll does not skip ahead. In
   the overview, wheel distance maps to slides, one per `overviewWheelPxPerSlide`
   pixels (default 110) with no throttle, so a free-spin wheel crosses the deck in
   one flick
+- instant address updates: the URL hash (`#/h/v/f`) follows every move at once,
+  where Reveal throttles its own write to one a second (`instantHash`, default
+  on; needs `hash: true`)
 - `q` key toggle for the QR code container
 - click-to-jump behavior for Reveal's built-in slide number
 - optional top or bottom page information bar (smaller text and margins on phones)
+
+On phones narrower than Reveal's `scrollActivationWidth` (435 px), Reveal 5
+switches to its scroll view, and the deck becomes a page to read rather than a
+talk to step through:
+
+- slides stack at their own height, several per screen, without snapping
+  (`scrollViewLayout: 'compact'`; `'full'` keeps Reveal's one slide per screen)
+- every fragment is shown at once (`scrollViewFragments: false`)
+- the address follows the slide at the top of the screen, and a link such as
+  `#/12` opens on that slide even after images load and move the layout
+  (Reveal 5.1 loses it on its own)
+- the wheel handler and the page information bar step aside
+- rotating or resizing across the width keeps the slide the reader was on
+
+To keep slide mode on phones instead, set `scrollActivationWidth: null` in
+`Reveal.initialize()`.
 
 Reveal still renders the page number. Enable it in `Reveal.initialize()`:
 
