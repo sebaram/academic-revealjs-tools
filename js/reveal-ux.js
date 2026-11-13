@@ -35,8 +35,9 @@
       guideItems: [
         ['Esc', 'Open / close this overview'],
         ['← → ↑ ↓', 'Move between slides'],
-        ['Scroll', 'Previous / next slide'],
+        ['Scroll', 'Browse slides (spin fast to fly)'],
         ['Click', 'Jump to a slide (or an agenda item)'],
+        ['G + 12', 'Go to slide number'],
         ['F', 'Fullscreen'],
         ['S', 'Speaker notes'],
         ['Q', 'Toggle the QR slide link'],
