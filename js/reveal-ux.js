@@ -14,6 +14,8 @@
   'use strict';
   // Read before Reveal starts: its scroll view rewrites the hash while images load.
   const initialHash = typeof location !== 'undefined' ? location.hash : '';
+  // No hash means the start: the browser may carry over a scroll offset from the tab's last page.
+  const initialAt = (function (m) { return { h: +m[1], v: +(m[2] || 0) }; })(/^#\/(\d+)(?:\/(\d+))?/.exec(initialHash) || [null, 0, 0]);
 
   function RevealUX(options) {
     this.opts = Object.assign({
@@ -58,7 +60,13 @@
     const c = window.Reveal.getConfig();
     this._authored = { hash: !!c.hash, scrollLayout: c.scrollLayout, scrollSnap: c.scrollSnap };
     if (this.opts.instantHash) this._bindInstantHash();
-    if (this.opts.scrollViewPortrait) this._scrollViewWhenPortrait(c.scrollActivationWidth);
+    if (c.view === 'presentation') {
+      // ?view=presentation: slide mode at any size. 0, not null: null makes Reveal skip its
+      // check and leaves a phone in the scroll view it already entered at load.
+      c.scrollActivationWidth = 0;
+      window.Reveal.layout();
+      window.Reveal.slide(initialAt.h, initialAt.v); // leaving the scroll view loses the deep link
+    } else if (this.opts.scrollViewPortrait) this._scrollViewWhenPortrait(c.scrollActivationWidth);
     this._adaptToScrollView();
     this._keepScrollViewDeepLink();
     if (this.opts.scrollViewBorder || this.opts.scrollViewSlideNumber) this._decorateScrollView();
@@ -147,10 +155,8 @@
   // shift leaves a deep link on an earlier slide. Jump again once all is loaded.
   // Named links (#/some-id) are left to Reveal.
   RevealUX.prototype._keepScrollViewDeepLink = function () {
-    // No hash means the start: the browser may carry over a scroll offset from the tab's last page.
-    const m = /^#\/(\d+)(?:\/(\d+))?/.exec(initialHash) || [null, 0, 0];
     const self = this;
-    function jump() { if (self._isScrollView()) self._goTo({ h: +m[1], v: +(m[2] || 0) }); }
+    function jump() { if (self._isScrollView()) self._goTo(initialAt); }
     // setTimeout: on 'ready' Reveal has not finished laying out the scroll pages yet.
     if (document.readyState === 'complete') setTimeout(jump, 0); else window.addEventListener('load', function () { setTimeout(jump, 0); });
   };

@@ -334,6 +334,14 @@ talk to step through:
 To keep slide mode on phones instead, set `scrollActivationWidth: null` in
 `Reveal.initialize()`.
 
+A link can also choose the mode. Put the query before the hash:
+
+- `deck/?view=presentation#/4` always shows slide mode, on phones and in portrait too
+- `deck/?view=scroll#/4` always shows the reading view, even on a landscape screen
+
+Reveal reads `view` from the query string itself; `presentation` is a value
+only reveal-ux understands, so it needs `reveal-ux.js` on the page.
+
 To use the same reading view whenever the window is taller than it is wide
 (tablets held upright, rotated monitors, narrow desktop windows), pass
 `scrollViewPortrait: true` to `RevealUX`. It is off by default because a
