@@ -24,6 +24,9 @@
       wheelMinDelta: 6,           // ignore tiny trackpad jitter
       scrollViewFragments: false, // phones read, not present: show all fragments in Reveal's scroll view
       scrollViewLayout: 'compact', // scroll view stacks slides at their own height, several per screen ('full' = Reveal's one per screen)
+      scrollViewPortrait: false,  // also use the scroll view whenever the window is taller than wide (tablets, rotated screens)
+      scrollViewBorder: false,    // scroll view: frame each slide as a card so stacked slides read apart
+      scrollViewSlideNumber: false, // scroll view: show "n / total" in each slide's corner (Reveal hides its own there)
       instantHash: true,          // write #/h/v/f on every move (Reveal throttles its own write to 1/s)
       qrToggleKey: 'q',
       qrContainerId: 'qrcode',
@@ -55,8 +58,10 @@
     const c = window.Reveal.getConfig();
     this._authored = { hash: !!c.hash, scrollLayout: c.scrollLayout, scrollSnap: c.scrollSnap };
     if (this.opts.instantHash) this._bindInstantHash();
+    if (this.opts.scrollViewPortrait) this._scrollViewWhenPortrait(c.scrollActivationWidth);
     this._adaptToScrollView();
     this._keepScrollViewDeepLink();
+    if (this.opts.scrollViewBorder || this.opts.scrollViewSlideNumber) this._decorateScrollView();
     if (this.opts.qrToggleKey) this._bindQrToggle();
     if (this.opts.clickableSlideNumber) this._bindClickableSlideNumber();
     if (this.opts.pageInfo) this._buildPageInfo();
@@ -162,7 +167,7 @@
     function sync() {
       const sv = self._isScrollView();
       requestAnimationFrame(function () { resizing = false; }); // after the scroll events this resize caused
-      if (sv === adapted) return;
+      if (sv === adapted) { if (sv) self._goTo(at); return; } // a resize reflows the stacked slides too
       adapted = sv;
       // Rename rather than configure({fragments:false}): Reveal still reserves scroll space per .fragment.
       if (!self.opts.scrollViewFragments) {
@@ -181,6 +186,18 @@
     sync();
     // A rotated phone or resized window can cross scrollActivationWidth; wait a tick for Reveal to switch views.
     window.addEventListener('resize', function () { resizing = true; setTimeout(sync, 0); });
+  };
+
+  // Reveal picks its scroll view by width alone; lifting the threshold while portrait
+  // hands the switch to it, and _adaptToScrollView's resize hook does the rest.
+  RevealUX.prototype._scrollViewWhenPortrait = function (authoredWidth) {
+    if (typeof authoredWidth !== 'number') return; // scrollActivationWidth: null means never scroll view
+    const mq = window.matchMedia('(orientation: portrait)');
+    // Set the live config and re-layout, the path a phone-width resize takes: switching
+    // views inside configure() lets Reveal write a stale hash (#/1/0/0) over the reader's slide.
+    function apply() { window.Reveal.getConfig().scrollActivationWidth = mq.matches ? Infinity : authoredWidth; window.Reveal.layout(); }
+    apply();
+    mq.addEventListener('change', apply);
   };
 
   RevealUX.prototype._bindInstantHash = function () {
@@ -334,6 +351,31 @@
       '.rux-hidden{display:none !important;}',
     ].join('');
     document.head.insertBefore(style, document.head.firstChild);
+  };
+
+  // CSS only, drawn over each page without changing its size, so Reveal's scroll
+  // positions and _topIndices stay exact. Each slide is one .scroll-page, in deck order.
+  RevealUX.prototype._decorateScrollView = function () {
+    const root = document.querySelector('.reveal');
+    if (!root) return;
+    if (this.opts.scrollViewBorder) root.classList.add('rux-sv-border');
+    if (this.opts.scrollViewSlideNumber) {
+      root.classList.add('rux-sv-number');
+      root.style.setProperty('--rux-total', '"' + window.Reveal.getTotalSlides() + '"');
+    }
+    if (document.getElementById('reveal-ux-sv-style')) return;
+    const style = document.createElement('style');
+    style.id = 'reveal-ux-sv-style';
+    style.textContent = [
+      '.reveal-scroll .reveal.rux-sv-border .scroll-page-content::after{content:"";position:absolute;inset:6px;z-index:20;pointer-events:none;',
+      'border:1px solid #c5ccd6;border-radius:10px;box-shadow:0 0 0 6px #eef1f5;}',
+      '.reveal-scroll .reveal.rux-sv-number{counter-reset:rux-sn;}',
+      '.reveal-scroll .reveal.rux-sv-number .scroll-page{counter-increment:rux-sn;}',
+      '.reveal-scroll .reveal.rux-sv-number .scroll-page-content::before{content:counter(rux-sn) " / " var(--rux-total);',
+      'position:absolute;right:16px;bottom:14px;z-index:21;pointer-events:none;padding:2px 8px;border-radius:6px;',
+      'background:rgba(31,41,51,.72);color:#fff;font:600 13px/1.4 Inter,Segoe UI,Arial,sans-serif;font-variant-numeric:tabular-nums;}',
+    ].join('');
+    document.head.insertBefore(style, document.head.firstChild); // first, so a deck's own CSS wins
   };
 
   RevealUX.prototype._injectPageInfoStyle = function () {

@@ -334,6 +334,27 @@ talk to step through:
 To keep slide mode on phones instead, set `scrollActivationWidth: null` in
 `Reveal.initialize()`.
 
+To use the same reading view whenever the window is taller than it is wide
+(tablets held upright, rotated monitors, narrow desktop windows), pass
+`scrollViewPortrait: true` to `RevealUX`. It is off by default because a
+presenter on a portrait screen would lose slide mode and fragments. Turning
+the device or window to landscape brings slide mode back on the same slide.
+
+Stacked slides with white backgrounds run into each other. Two more options
+help readers keep them apart, and both are off by default:
+
+- `scrollViewBorder: true` frames each slide as a card with a thin gap
+- `scrollViewSlideNumber: true` puts `n / total` in each slide's corner, since
+  Reveal hides its own slide number in the scroll view
+
+```js
+new RevealUX.RevealUX({
+  scrollViewPortrait: true,
+  scrollViewBorder: true,
+  scrollViewSlideNumber: true,
+}).init();
+```
+
 Reveal still renders the page number. Enable it in `Reveal.initialize()`:
 
 ```js
