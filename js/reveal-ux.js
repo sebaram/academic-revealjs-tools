@@ -31,6 +31,7 @@
       scrollViewSlideNumber: false, // scroll view: show "n / total" in each slide's corner (Reveal hides its own there)
       instantHash: true,          // write #/h/v/f on every move (Reveal throttles its own write to 1/s)
       qrToggleKey: 'q',
+      printKey: 'e',              // opens the deck in Reveal's ?print-pdf mode in a new tab (P is Reveal's "previous")
       qrContainerId: 'qrcode',
       clickableSlideNumber: false,
       slideNumberSelector: '.reveal .slide-number',
@@ -46,6 +47,7 @@
         ['F', 'Fullscreen'],
         ['S', 'Speaker notes'],
         ['Q', 'Toggle the QR slide link'],
+        ['E', 'Print / save as PDF (new tab)'],
       ],
     }, options || {});
     this._lastWheel = 0;
@@ -71,6 +73,7 @@
     this._keepScrollViewDeepLink();
     if (this.opts.scrollViewBorder || this.opts.scrollViewSlideNumber) this._decorateScrollView();
     if (this.opts.qrToggleKey) this._bindQrToggle();
+    if (this.opts.printKey) this._bindPrintKey();
     if (this.opts.clickableSlideNumber) this._bindClickableSlideNumber();
     if (this.opts.pageInfo) this._buildPageInfo();
     return this;
@@ -252,6 +255,16 @@
       if (!ev.key || ev.key.toLowerCase() !== self.opts.qrToggleKey) return;
       const el = document.getElementById(self.opts.qrContainerId);
       if (el) el.classList.toggle('rux-hidden');
+    });
+  };
+
+  RevealUX.prototype._bindPrintKey = function () {
+    const self = this;
+    if (/[?&]print-pdf/.test(window.location.search)) return; // already the print view
+    document.addEventListener('keydown', function (ev) {
+      if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+      if (!ev.key || ev.key.toLowerCase() !== self.opts.printKey) return;
+      window.open(window.location.pathname + '?print-pdf', '_blank');
     });
   };
 

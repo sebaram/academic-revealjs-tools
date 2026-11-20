@@ -315,6 +315,9 @@ This adds:
   where Reveal throttles its own write to one a second (`instantHash`, default
   on; needs `hash: true`)
 - `q` key toggle for the QR code container
+- `e` key opens the deck in Reveal's `?print-pdf` view in a new tab, ready to
+  print or save as PDF (`printKey`, default `'e'`; `null` to turn off). Not `p`:
+  Reveal uses it for the previous slide
 - click-to-jump behavior for Reveal's built-in slide number
 - optional top or bottom page information bar (smaller text and margins on phones)
 
