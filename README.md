@@ -32,11 +32,11 @@ After enabling GitHub Pages for this repository, use the Pages URL directly:
 For stable public decks, prefer jsDelivr with a git tag:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/css/juyoung-theme.css">
-<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-bibtex.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-agenda.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-qr.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-ux.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/css/juyoung-theme.css">
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/js/reveal-bibtex.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/js/reveal-agenda.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/js/reveal-qr.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/js/reveal-ux.js"></script>
 ```
 
 Use `@main` only while developing because it can change under existing decks.
@@ -454,7 +454,7 @@ Inside `slide/index.html`, either use local scripts while developing:
 or use the public CDN URL when the deck lives in another private repository:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.0/js/reveal-bibtex.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/js/reveal-bibtex.js"></script>
 ```
 
 ## Development
