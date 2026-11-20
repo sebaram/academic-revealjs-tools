@@ -31,6 +31,7 @@
       scrollViewSlideNumber: false, // scroll view: show "n / total" in each slide's corner (Reveal hides its own there)
       instantHash: true,          // write #/h/v/f on every move (Reveal throttles its own write to 1/s)
       qrToggleKey: 'q',
+      fullscreenToggle: true,     // F leaves fullscreen too (Reveal's own F only enters it)
       printKey: 'e',              // opens the deck in Reveal's ?print-pdf mode in a new tab (P is Reveal's "previous")
       qrContainerId: 'qrcode',
       clickableSlideNumber: false,
@@ -44,7 +45,7 @@
         ['Scroll', 'Browse slides (spin fast to fly)'],
         ['Click', 'Jump to a slide (or an agenda item)'],
         ['G + 12', 'Go to slide number'],
-        ['F', 'Fullscreen'],
+        ['F', 'Fullscreen on / off'],
         ['S', 'Speaker notes'],
         ['Q', 'Toggle the QR slide link'],
         ['E', 'Print / save as PDF (new tab)'],
@@ -74,6 +75,7 @@
     if (this.opts.scrollViewBorder || this.opts.scrollViewSlideNumber) this._decorateScrollView();
     if (this.opts.qrToggleKey) this._bindQrToggle();
     if (this.opts.printKey) this._bindPrintKey();
+    if (this.opts.fullscreenToggle) this._bindFullscreenToggle();
     if (this.opts.clickableSlideNumber) this._bindClickableSlideNumber();
     if (this.opts.pageInfo) this._buildPageInfo();
     return this;
@@ -255,6 +257,20 @@
       if (!ev.key || ev.key.toLowerCase() !== self.opts.qrToggleKey) return;
       const el = document.getElementById(self.opts.qrContainerId);
       if (el) el.classList.toggle('rux-hidden');
+    });
+  };
+
+  // A Reveal key binding replaces its default F handler, which only ever enters fullscreen.
+  RevealUX.prototype._bindFullscreenToggle = function () {
+    const R = window.Reveal;
+    R.addKeyBinding({ keyCode: 70, key: 'F', description: 'Toggle fullscreen' }, function () {
+      const d = document;
+      if (d.fullscreenElement || d.webkitFullscreenElement) {
+        (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+        return;
+      }
+      const el = R.getConfig().embedded ? R.getViewportElement() : d.documentElement;
+      (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
     });
   };
 

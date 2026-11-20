@@ -32,11 +32,11 @@ After enabling GitHub Pages for this repository, use the Pages URL directly:
 For stable public decks, prefer jsDelivr with a git tag:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/css/juyoung-theme.css">
-<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/js/reveal-bibtex.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/js/reveal-agenda.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/js/reveal-qr.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/js/reveal-ux.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.7/css/juyoung-theme.css">
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.7/js/reveal-bibtex.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.7/js/reveal-agenda.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.7/js/reveal-qr.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.7/js/reveal-ux.js"></script>
 ```
 
 Use `@main` only while developing because it can change under existing decks.
@@ -315,6 +315,8 @@ This adds:
   where Reveal throttles its own write to one a second (`instantHash`, default
   on; needs `hash: true`)
 - `q` key toggle for the QR code container
+- `f` key toggles fullscreen: pressing it again leaves fullscreen, where
+  Reveal's own `f` only enters it (`fullscreenToggle`, default on)
 - `e` key opens the deck in Reveal's `?print-pdf` view in a new tab, ready to
   print or save as PDF (`printKey`, default `'e'`; `null` to turn off). Not `p`:
   Reveal uses it for the previous slide
@@ -454,7 +456,7 @@ Inside `slide/index.html`, either use local scripts while developing:
 or use the public CDN URL when the deck lives in another private repository:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.6/js/reveal-bibtex.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sebaram/academic-revealjs-tools@v0.1.7/js/reveal-bibtex.js"></script>
 ```
 
 ## Development
